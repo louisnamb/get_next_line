@@ -1,0 +1,12 @@
+In this example, we will explain how to open and read a file using the open() 
+and read() functions.
+
+For this purpose, we previously created a text file with the name, “example.txt”, 
+via the Linux Manager and saved it in the “Documents” directory. We wrote the first 
+paragraph of this article in it.
+
+The first step in developing the code to read the file is to include the necessary 
+headers and create a main() function that returns an empty value. We define the “fd” 
+integer in it which serves as the file descriptor, a 1024 character buffer called 
+“buff” where the information that is read by the read() function is stored. 
+The array path stores the path and the name of the file that we want to read.Welcome to GFG
