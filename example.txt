@@ -1,9 +1,4 @@
-In this example, we will explain how to open and read a file using the open() 
-and read() functions.
-
-For this purpose, we previously created a text file with the name, “example.txt”, 
-via the Linux Manager and saved it in the “Documents” directory. We wrote the first 
-paragraph of this article in it.
+When you invoke GCC, it normally does preprocessing, compilation, assembly and linking. The overall options allow you to stop this process at an intermediate stage. For example, the -c option says not to run the linker.Then the output consists of object files output by the assembler.aph of this article in it.
 
 The first step in developing the code to read the file is to include the necessary 
 headers and create a main() function that returns an empty value. We define the “fd” 
