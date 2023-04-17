@@ -1,5 +1,6 @@
 When you invoke GCC, it normally does 
-preprocessing, compilation, assembly and linking. The overall 
+preprocessing, compilation, assembly and linking. 
+The overall 
 options allow you to stop this process at an intermediate stage. 
 For example, the 
 -c option says not to run the linker.T
