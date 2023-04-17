@@ -6,7 +6,7 @@
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 15:49:10 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/17 11:05:40 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/17 12:28:41 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,22 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+char	*ft_strchr(const char *s, int c)
+{
+	const char	*str;
+
+	str = s;
+	while (*str && str)
+	{
+		if (*str == (char)c)
+			return ((char *)str);
+		str++;
+	}
+	if ((char)c == '\0')
+		return ((char *)str);
+	return (NULL);
+}
 
 int get_next_line(int fd)
 {
@@ -28,15 +44,15 @@ int get_next_line(int fd)
 		return (1);
     }
 	i = 0;
-	bytes_read = read(fd, buffer, 39);
-	while (buffer[i] && i <= sizeof(buffer))
+	while (buffer[i] && i <= sizeof(buffer) && ft_strchr(buffer, '\n'))
 	{
 		++i;
+		bytes_read = read(fd, buffer, sizeof(buffer));
+		new_buff = malloc(sizeof(char) * (i + 1));
 		//printf("\t\ti: %d - %c\n", i, buffer[i]);
 		if (buffer[i] == '\n')
 			break;
 	}
-	new_buff = malloc(sizeof(char) * (i + 1));
     bytes_read = read(fd, new_buff, sizeof(new_buff));
 	//new_buff[sizeof(buffer)] = '\0';
 	printf("buffer: %s new_buff: %s\n", buffer, new_buff);
@@ -70,13 +86,16 @@ Get_next_line notes:
 	hence the static variable
 - for it to print the rest (until the newline character)
 
-Research areas:
-- research fgets() function
+Steps: 
+- everytime the gnl function is called, we read buffer_size bytes into buffer.
+- then we call the strjoin functoin to add buffer to the end of newbuff. free
+	buffer/
+- this will loop while we havent found a newline character in newbuff. this is
+	done using the strchr functoin from libft
+- when we do encounter a newline in newbuff, return newbuff
 
-Steps:
-- Open the file and create a pointer to the first character of the file
-- store buffer sized characters in the buffer variable, including the 
-  newline character. 
-- print up to newline characters. free whats left of the newline character
-  and keep whats right of it
+notes:
+- newbuff is a static char pointer. points to the s
+- make a functoin that frees whats left of the newline character, copies whats
+	right of the newline character to the left.
 */
