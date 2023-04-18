@@ -6,83 +6,101 @@
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 15:49:10 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/17 12:28:41 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/18 16:21:16 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include "get_next_line.h"
 
-char	*ft_strchr(const char *s, int c)
+char	*get_next_line(int fd)
 {
-	const char	*str;
+	char			buffer[BUFFER_SIZE + 1];
+	unsigned long			bytes_read;
+	static char		*rval = NULL;
+	static char		*nbuff;
+	unsigned int	i;
+	char			*prev_buff;
+	unsigned long	next;
 
-	str = s;
-	while (*str && str)
+	if (rval)
 	{
-		if (*str == (char)c)
-			return ((char *)str);
-		str++;
+		free(rval);
+		rval = NULL;
 	}
-	if ((char)c == '\0')
-		return ((char *)str);
-	return (NULL);
-}
-
-int get_next_line(int fd)
-{
-    char			buffer[1024];
-    size_t			bytes_read;
-	static int		i;
-	char			*new_buff;
-	static int		j;
-
-    if (fd == -1) {
-		perror("Couldn't open the file. Try again.");
-		return (1);
-    }
+	if (fd < 0)
+		return (NULL);
 	i = 0;
-	while (buffer[i] && i <= sizeof(buffer) && ft_strchr(buffer, '\n'))
+	bytes_read = 0;
+	while (i < (BUFFER_SIZE + 1))
+		buffer[i++] = 0;
+	if (nbuff == NULL)
+		nbuff = ft_strdup("");
+	while (ft_strchr(buffer, '\n') == NULL)
 	{
-		++i;
-		bytes_read = read(fd, buffer, sizeof(buffer));
-		new_buff = malloc(sizeof(char) * (i + 1));
-		//printf("\t\ti: %d - %c\n", i, buffer[i]);
-		if (buffer[i] == '\n')
-			break;
-	}
-    bytes_read = read(fd, new_buff, sizeof(new_buff));
-	//new_buff[sizeof(buffer)] = '\0';
-	printf("buffer: %s new_buff: %s\n", buffer, new_buff);
-	/*while (buffer[i] != '\0' && i < sizeof(buffer))
-	{
-		new_buff[i] = buffer[i];
-		i++;
-	}*/
-	j = 0;
-	//printf("bytes allocated: %zu str:\n %s\n", sizeof(buffer), new_buff);
-	printf("\n\n");
-	free(new_buff);
-	close(fd); // close file when done
-    return 0;
-}
 
+		next = read(fd, buffer, BUFFER_SIZE);
+		
+		if (next != 0)
+		{
+			bytes_read = next;
+			prev_buff = nbuff;
+			nbuff = ft_strjoin(nbuff, buffer);
+			free(prev_buff);
+		}
+		else
+			break ;
+
+	}
+	if (next != 0)
+		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\n') - nbuff + 1);
+	else
+		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\0') - nbuff);
+
+	if (next == 0)
+	{
+		free(nbuff);
+	}
+	else
+	{
+		prev_buff = nbuff;
+		nbuff = ft_strchr(nbuff, '\n') + 1;
+		nbuff = ft_strdup(nbuff + 1);
+		free(prev_buff);
+	}
+	if (bytes_read == 0)
+		return (NULL);
+
+    return (rval);
+}
+#ifdef _MAIN_
 int main()
 {
 	int fd;
-	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/example.txt", O_RDONLY);
-	get_next_line(fd);
+	int	i;
+	char *result;
+	i = 0;
+	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/example.txt", O_RDWR);
+	if (fd == -1) {
+		perror("Couldn't open the file. Try again.");
+		return (0);
+	}
+	result = get_next_line(fd);
+	while (result)
+	{
+		printf("%s", result);
+		result = get_next_line(fd);
+	}
 	return (0);
 }
-
+#endif
 /*
 Get_next_line notes:
 - use open and closefp function
 - define BUFFER_SIZE in your header file
-- copies buffer sized bytes but prints until the newline character and stops
-- next time you run get_next_line, its going to start after the newline character
+- copies buffer sized bytes but prints until the newline 
+character and stops
+- next time you run get_next_line, its going to start after 
+the newline character
 	hence the static variable
 - for it to print the rest (until the newline character)
 
