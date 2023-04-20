@@ -1,87 +1,82 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   gnl.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 15:49:10 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/19 15:19:22 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/20 15:14:43 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-
-char	*get_next_line(int fd)
+char *get_currline(int fd, char *buffer, char *nbuff, char *rval)
 {
-	char			*buffer;
-	char			*nbuff;
-	char			*line;
+    size_t  next;
+    size_t  bytes_read;
+    char    *prev_buff;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (NULL);
-	buffer = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
-	if (nbuff == NULL)
-		nbuff = ft_strdup("");
-	line = currline(fd, buffer, nbuff);
-	free(buffer);
-	buffer = NULL;
-	if (!line)
-		return (line);
-	nbuff = gnl(nbuff)
-	return (nbuff);
-}
-
-static char *currline(int fd, char *buffer)
-{
-	unsigned long	next;
-	char		*rval = NULL;
-	unsigned long	bytes_read;
-
-	bytes_read = 0;
-	while (ft_strchr(buffer, '\n') == NULL)
+    bytes_read = 0;
+	while (ft_strchr(nbuff, '\n') == NULL)
 	{
-		next = read(fd, buffer, BUFFER_SIZE);
-		if (next == -1)
-			return (NULL);
-		else if (next == 0)
+		next = read(fd, buffer, BUFFER_SIZE);	
+		if (next != 0)
+		{
+			bytes_read = next;
+			nbuff = ft_strjoin(nbuff, buffer);
+			free(nbuff);
+		}
+		else if (next <= -1)
+            return (NULL);
+        else
 			break ;
-		bytes_read = next;
-		rval[bytes_read] = '\0';
-		prev_buff = nbuff;
-		nbuff = ft_strjoin(prev_buff, buffer);
-		frree(prev_buff);
 	}
-	return (nbuff);
-}
-
-static char	*gnl(char *line)
-{
-	int	i;
-
-	i = 0;
-	while (line[i] != '\n' && line[i] != '\0')
-		i++;
-	if (line[i] == '\0' || line[0] == '\0')
-		return (NULL);
-
 	if (next != 0)
-	{
+    {
 		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\n') - nbuff + 1);
-	//	prev_buff = nbuff;
-		nbuff = ft_strchr(nbuff, '\n') + 1;
-	//	nbuff = ft_strdup(nbuff + 1);
-	//	frree(prev_buff);
-	}
+    }
+	else
+		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\0') - nbuff);
+	if (next == 0)
+		free(nbuff);
 	else
 	{
-
-		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\0') - nbuff);
-		free(nbuff); 
+		prev_buff = nbuff;
+		nbuff = ft_strchr(prev_buff, '\n') + 1;
+		nbuff = ft_strdup(nbuff);
+		prev_buff = NULL;
 	}
 	if (bytes_read == 0)
 		return (NULL);
+    return (rval);
+}
+
+char	*get_next_line(int fd)
+{
+	char			*buffer;//[BUFFER_SIZE + 1];
+	static char		*rval = NULL;
+	static char		*nbuff;
+    size_t          j;
+
+    j = 0;
+	if (rval)
+	{
+		free(rval);
+		rval = NULL;
+	}
+	if (fd < 0)
+		return (NULL);
+	buffer = (char *)malloc(sizeof(char *) * (BUFFER_SIZE + 1));
+    if (nbuff == NULL || buffer == NULL)
+    	nbuff = ft_strdup("");
+    buffer = ft_strdup("");
+    rval = get_currline(fd, buffer, nbuff, rval);
+    if (!rval)
+        return (NULL);
+    free(buffer);
+    buffer = NULL;
     return (rval);
 }
 
@@ -97,12 +92,12 @@ int main()
 		perror("Couldn't open the file. Try again.");
 		return (0);
 	}
-	result = get_next_line(fd);
-	while (result)
-	{
-		printf("%s", result);
-		result = get_next_line(fd);
-	}
+    while (i < 7)
+    {
+	    result = get_next_line(fd);
+	    printf("%s", result);
+        i++;
+    }
 	return (0);
 }
 #endif
@@ -119,7 +114,7 @@ the newline character
 
 Steps: 
 - everytime the gnl function is called, we read buffer_size bytes into buffer.
-- then we call the strjoin functoin to add buffer to the end of newbuff. frree
+- then we call the strjoin functoin to add buffer to the end of newbuff. free
 	buffer/
 - this will loop while we havent found a newline character in newbuff. this is
 	done using the strchr functoin from libft
@@ -127,6 +122,6 @@ Steps:
 
 notes:
 - newbuff is a static char pointer. points to the s
-- make a functoin that frrees whats left of the newline character, copies whats
+- make a functoin that frees whats left of the newline character, copies whats
 	right of the newline character to the left.
 */
