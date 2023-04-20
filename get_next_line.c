@@ -6,7 +6,7 @@
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 15:49:10 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/18 16:21:16 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/20 15:16:16 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,39 +37,32 @@ char	*get_next_line(int fd)
 		nbuff = ft_strdup("");
 	while (ft_strchr(buffer, '\n') == NULL)
 	{
-
 		next = read(fd, buffer, BUFFER_SIZE);
-		
 		if (next != 0)
 		{
 			bytes_read = next;
 			prev_buff = nbuff;
-			nbuff = ft_strjoin(nbuff, buffer);
+			nbuff = ft_strjoin(prev_buff, buffer);
 			free(prev_buff);
 		}
 		else
 			break ;
-
 	}
 	if (next != 0)
 		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\n') - nbuff + 1);
 	else
 		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\0') - nbuff);
-
 	if (next == 0)
-	{
 		free(nbuff);
-	}
 	else
 	{
 		prev_buff = nbuff;
 		nbuff = ft_strchr(nbuff, '\n') + 1;
-		nbuff = ft_strdup(nbuff + 1);
+		nbuff = ft_strdup(nbuff);
 		free(prev_buff);
 	}
 	if (bytes_read == 0)
 		return (NULL);
-
     return (rval);
 }
 #ifdef _MAIN_
@@ -84,12 +77,12 @@ int main()
 		perror("Couldn't open the file. Try again.");
 		return (0);
 	}
-	result = get_next_line(fd);
-	while (result)
-	{
-		printf("%s", result);
-		result = get_next_line(fd);
-	}
+    while (i < 7)
+    {
+	    result = get_next_line(fd);
+	    printf("%s", result);
+        i++;
+    }
 	return (0);
 }
 #endif
