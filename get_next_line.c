@@ -6,63 +6,97 @@
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 15:49:10 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/20 15:16:16 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/21 16:22:12 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include "leak_detector_c.h"
+
+static int read_error = 0;
+int fake_read(int fd, char *buffer, int size)
+{
+	if (read_error)
+	{
+		read_error = 0;
+		return (-1);
+	}
+	return (read(fd, buffer, size));
+}
+
+char *get_currline(int fd, char *buffer, char **nbuff, char *rval)
+{
+    int	  	next;
+    int	  	bytes_read;
+    char	*prev_buff;
+
+    bytes_read = 0;
+	next = 0;
+	while (ft_strchr(*nbuff, '\n') == NULL)
+	{
+		bytes_read = next;
+		next = fake_read(fd, buffer, BUFFER_SIZE); //0x30	
+		if (next > 0)
+		{
+			prev_buff = *nbuff; // *nbuff = 0x60
+			buffer[next] = '\0';
+			*nbuff = ft_strjoin(prev_buff, buffer); //0x80
+			free(prev_buff); // 0x60
+		}
+		else if (next <= -1)
+            return (NULL);
+        else
+			break ;
+	}
+	// If we have a new line in the buffer:
+	// set rval to evertthing before the newline, including the new line.
+	if (ft_strchr(*nbuff, '\n'))
+		rval = ft_substr(*nbuff, 0, ft_strchr(*nbuff, '\n') - *nbuff + 1); // rval 0xB0
+	else
+	{
+		if (bytes_read == 0)
+			return (NULL);
+		rval = ft_strdup(*nbuff);
+		return (rval);
+	}
+	prev_buff = *nbuff;
+	*nbuff = ft_strchr(prev_buff, '\n') + 1;
+	*nbuff = ft_strdup(*nbuff); // 0xE0
+	free(prev_buff);
+	prev_buff = NULL;
+    return (rval);
+}
 
 char	*get_next_line(int fd)
 {
-	char			buffer[BUFFER_SIZE + 1];
-	unsigned long			bytes_read;
-	static char		*rval = NULL;
+	char			*buffer;
+	char		*rval = NULL;
 	static char		*nbuff;
-	unsigned int	i;
-	char			*prev_buff;
-	unsigned long	next;
+    size_t          j;
 
-	if (rval)
+    j = 0;
+	if (fd < 0 || read(fd, 0, 0) < 0)
+		return (NULL);
+	buffer = (char *)malloc(sizeof(char *) * (BUFFER_SIZE + 1));
+	while (j < BUFFER_SIZE + 1)
 	{
+		buffer[j] = 0;
+		j++;
+	}
+	j = 0;
+    if (nbuff == NULL)
+    	nbuff = ft_strdup("");
+    rval = get_currline(fd, buffer, &nbuff, rval);
+    if (!rval)
+	{
+		free(nbuff);
 		free(rval);
 		rval = NULL;
+		nbuff = NULL;
+	    return (NULL);
 	}
-	if (fd < 0)
-		return (NULL);
-	i = 0;
-	bytes_read = 0;
-	while (i < (BUFFER_SIZE + 1))
-		buffer[i++] = 0;
-	if (nbuff == NULL)
-		nbuff = ft_strdup("");
-	while (ft_strchr(buffer, '\n') == NULL)
-	{
-		next = read(fd, buffer, BUFFER_SIZE);
-		if (next != 0)
-		{
-			bytes_read = next;
-			prev_buff = nbuff;
-			nbuff = ft_strjoin(prev_buff, buffer);
-			free(prev_buff);
-		}
-		else
-			break ;
-	}
-	if (next != 0)
-		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\n') - nbuff + 1);
-	else
-		rval = ft_substr(nbuff, 0, ft_strchr(nbuff, '\0') - nbuff);
-	if (next == 0)
-		free(nbuff);
-	else
-	{
-		prev_buff = nbuff;
-		nbuff = ft_strchr(nbuff, '\n') + 1;
-		nbuff = ft_strdup(nbuff);
-		free(prev_buff);
-	}
-	if (bytes_read == 0)
-		return (NULL);
+	free(buffer);
+    buffer = NULL;
     return (rval);
 }
 #ifdef _MAIN_
@@ -72,17 +106,32 @@ int main()
 	int	i;
 	char *result;
 	i = 0;
-	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/example.txt", O_RDWR);
+	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/1char.txt", O_RDWR);
 	if (fd == -1) {
 		perror("Couldn't open the file. Try again.");
 		return (0);
 	}
-    while (i < 7)
+	result = 0x1;
+    while (result)
     {
 	    result = get_next_line(fd);
-	    printf("%s", result);
-        i++;
-    }
+		if (i == 1)
+			read_error = 1;
+		printf("%d: %s", i, result);
+		free (result);
+	    i++;
+    } 
+	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/1char.txt", O_RDWR);
+	result = 0x1;
+    while (result)
+    {
+	    result = get_next_line(fd);
+		if (i == 1)
+			read_error = 1;
+		printf("%d: %s\n", i, result);
+		free (result);
+	    i++;
+    } 
 	return (0);
 }
 #endif
