@@ -6,7 +6,7 @@
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 15:49:10 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/21 16:22:12 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/24 16:15:02 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,11 @@ char *get_currline(int fd, char *buffer, char **nbuff, char *rval)
     int	  	next;
     int	  	bytes_read;
     char	*prev_buff;
+	int	character;
 
     bytes_read = 0;
 	next = 0;
+	character = 1;
 	while (ft_strchr(*nbuff, '\n') == NULL)
 	{
 		bytes_read = next;
@@ -44,7 +46,9 @@ char *get_currline(int fd, char *buffer, char **nbuff, char *rval)
 			free(prev_buff); // 0x60
 		}
 		else if (next <= -1)
+		{
             return (NULL);
+		}
         else
 			break ;
 	}
@@ -52,12 +56,22 @@ char *get_currline(int fd, char *buffer, char **nbuff, char *rval)
 	// set rval to evertthing before the newline, including the new line.
 	if (ft_strchr(*nbuff, '\n'))
 		rval = ft_substr(*nbuff, 0, ft_strchr(*nbuff, '\n') - *nbuff + 1); // rval 0xB0
+	//else if (ft_strchr(*nbuff, '\0'))
+//	{
+	//	character = 0;
+//		rval = ft_substr(*nbuff, 0, ft_strchr(*nbuff, '\0') - *nbuff + 1);
+//	}
+//	else if (next == -1)
+//		return (NULL);
 	else
 	{
 		if (bytes_read == 0)
+		{
+			rval = ft_strdup(*nbuff);
+			return (rval);
+		}
+		else
 			return (NULL);
-		rval = ft_strdup(*nbuff);
-		return (rval);
 	}
 	prev_buff = *nbuff;
 	*nbuff = ft_strchr(prev_buff, '\n') + 1;
@@ -105,25 +119,25 @@ int main()
 	int fd;
 	int	i;
 	char *result;
-	i = 0;
-	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/1char.txt", O_RDWR);
+	i = 1;
+	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/example.txt", O_RDWR);
 	if (fd == -1) {
 		perror("Couldn't open the file. Try again.");
 		return (0);
 	}
-	result = 0x1;
-    while (result)
+	result = get_next_line(fd);
+    printf("%d: %s\n", i, result);
+	while (result)
     {
-	    result = get_next_line(fd);
+		result = get_next_line(fd); 
+		printf("%d: %s\n", i, result);
 		if (i == 1)
 			read_error = 1;
-		printf("%d: %s", i, result);
 		free (result);
 	    i++;
-    } 
-	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/1char.txt", O_RDWR);
-	result = 0x1;
-    while (result)
+    }
+//	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/example.txt", O_RDWR);
+    /*do
     {
 	    result = get_next_line(fd);
 		if (i == 1)
@@ -131,7 +145,7 @@ int main()
 		printf("%d: %s\n", i, result);
 		free (result);
 	    i++;
-    } 
+    } while (result);*/
 	return (0);
 }
 #endif
