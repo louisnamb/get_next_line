@@ -6,78 +6,51 @@
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 15:49:10 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/24 16:15:02 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/27 14:19:30 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include "leak_detector_c.h"
 
-static int read_error = 0;
-int fake_read(int fd, char *buffer, int size)
+char *unique(char **data, char	*new)
 {
-	if (read_error)
-	{
-		read_error = 0;
-		return (-1);
-	}
-	return (read(fd, buffer, size));
+	free(*data);
+	*data = NULL;
+	return (new);
 }
 
 char *get_currline(int fd, char *buffer, char **nbuff, char *rval)
 {
     int	  	next;
-    int	  	bytes_read;
-    char	*prev_buff;
 	int	character;
 
-    bytes_read = 0;
-	next = 0;
+	next = 69;
 	character = 1;
-	while (ft_strchr(*nbuff, '\n') == NULL)
+	while (next != 0)
 	{
-		bytes_read = next;
-		next = fake_read(fd, buffer, BUFFER_SIZE); //0x30	
-		if (next > 0)
-		{
-			prev_buff = *nbuff; // *nbuff = 0x60
-			buffer[next] = '\0';
-			*nbuff = ft_strjoin(prev_buff, buffer); //0x80
-			free(prev_buff); // 0x60
-		}
-		else if (next <= -1)
-		{
-            return (NULL);
-		}
-        else
+		next = read(fd, buffer, BUFFER_SIZE); //0x30	
+		if (next <= -1 || (next == 0 && *nbuff[0] == '\0'))
+		    return (unique(nbuff, NULL));
+		else if (next == 0)
+			break ;
+		buffer[next] = '\0';
+		*nbuff = unique(nbuff, ft_strjoin(*nbuff, buffer)); //0x80
+        if (ft_strchr(*nbuff, '\n'))
 			break ;
 	}
-	// If we have a new line in the buffer:
-	// set rval to evertthing before the newline, including the new line.
 	if (ft_strchr(*nbuff, '\n'))
 		rval = ft_substr(*nbuff, 0, ft_strchr(*nbuff, '\n') - *nbuff + 1); // rval 0xB0
-	//else if (ft_strchr(*nbuff, '\0'))
-//	{
-	//	character = 0;
-//		rval = ft_substr(*nbuff, 0, ft_strchr(*nbuff, '\0') - *nbuff + 1);
-//	}
-//	else if (next == -1)
-//		return (NULL);
-	else
+	else if (ft_strchr(*nbuff, '\0'))//byte s_read == 0 && sizeof(*nbuff) > 4 && !ft_strchr(*nbuff, '\n'))
 	{
-		if (bytes_read == 0)
-		{
-			rval = ft_strdup(*nbuff);
-			return (rval);
-		}
-		else
-			return (NULL);
+		rval = ft_strdup(*nbuff);
+		character = 0;
 	}
-	prev_buff = *nbuff;
-	*nbuff = ft_strchr(prev_buff, '\n') + 1;
-	*nbuff = ft_strdup(*nbuff); // 0xE0
-	free(prev_buff);
-	prev_buff = NULL;
+	else
+		return (NULL);
+	if (character) // moves nbuff on if we're not on the last line
+		*nbuff = unique(nbuff, ft_strdup(ft_strchr(*nbuff, '\n') + 1)); // 0xE0
+	else
+		*nbuff = unique(nbuff, ft_strdup(ft_strchr(*nbuff, '\0'))); // 0xE0
     return (rval);
 }
 
@@ -90,27 +63,21 @@ char	*get_next_line(int fd)
 
     j = 0;
 	if (fd < 0 || read(fd, 0, 0) < 0)
-		return (NULL);
+		return (unique(&nbuff, NULL));
 	buffer = (char *)malloc(sizeof(char *) * (BUFFER_SIZE + 1));
 	while (j < BUFFER_SIZE + 1)
-	{
-		buffer[j] = 0;
-		j++;
-	}
-	j = 0;
+		buffer[j++] = 0;
     if (nbuff == NULL)
     	nbuff = ft_strdup("");
     rval = get_currline(fd, buffer, &nbuff, rval);
-    if (!rval)
-	{
-		free(nbuff);
-		free(rval);
-		rval = NULL;
-		nbuff = NULL;
-	    return (NULL);
-	}
 	free(buffer);
     buffer = NULL;
+    if (!rval)
+	{
+		unique(&nbuff, NULL);
+		unique(&rval, NULL);
+	    return (NULL);
+	}
     return (rval);
 }
 #ifdef _MAIN_
@@ -131,8 +98,6 @@ int main()
     {
 		result = get_next_line(fd); 
 		printf("%d: %s\n", i, result);
-		if (i == 1)
-			read_error = 1;
 		free (result);
 	    i++;
     }
