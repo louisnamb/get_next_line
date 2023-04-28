@@ -12,6 +12,22 @@
 
 #include "get_next_line.h"
 
+char	*ft_strchr(const char *s, int c)
+{
+	const char	*str;
+
+	str = s;
+	while (*str && str)
+	{
+		if (*str == (char)c)
+			return ((char *)str);
+		str++;
+	}
+	if ((char)c == '\0')
+		return ((char *)str);
+	return (NULL);
+}
+
 char	*unique(char **data, char	*new)
 {
 	free(*data);
@@ -19,13 +35,11 @@ char	*unique(char **data, char	*new)
 	return (new);
 }
 
-char	*get_currline(int fd, char *buffer, char **nbuff, char *rval)
+char	*read_file(int fd, char *buffer, char **nbuff)
 {
 	int		next;
-	int		character;
 
 	next = 69;
-	character = 1;
 	while (next != 0)
 	{
 		next = read(fd, buffer, BUFFER_SIZE);
@@ -38,6 +52,14 @@ char	*get_currline(int fd, char *buffer, char **nbuff, char *rval)
 		if (ft_strchr(*nbuff, '\n'))
 			break ;
 	}
+	return (*nbuff);
+}
+
+char	*get_currline(int fd, char *buffer, char **nbuff, char *rval)
+{
+	int		character;
+
+	read_file(fd, buffer, nbuff);
 	if (ft_strchr(*nbuff, '\n'))
 		rval = ft_substr(*nbuff, 0, ft_strchr(*nbuff, '\n') - *nbuff + 1);
 	else if (ft_strchr(*nbuff, '\0'))

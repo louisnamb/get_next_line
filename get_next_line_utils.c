@@ -6,7 +6,7 @@
 /*   By: lnambaji <lnambaji@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/18 13:55:25 by lnambaji          #+#    #+#             */
-/*   Updated: 2023/04/24 14:30:34 by lnambaji         ###   ########.fr       */
+/*   Updated: 2023/04/28 14:47:19 by lnambaji         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,20 +101,4 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	}
 	str[i + j] = '\0';
 	return (str);
-}
-
-char	*ft_strchr(const char *s, int c)
-{
-	const char	*str;
-
-	str = s;
-	while (*str && str)
-	{
-		if (*str == (char)c)
-			return ((char *)str);
-		str++;
-	}
-	if ((char)c == '\0')
-		return ((char *)str);
-	return (NULL);
 }
