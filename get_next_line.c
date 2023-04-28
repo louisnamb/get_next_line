@@ -103,3 +103,26 @@ char	*get_next_line(int fd)
 	}
 	return (rval);
 }
+int main()
+{
+	int fd;
+	int	i;
+	char *result;
+	i = 0;
+	fd = open("/Users/lnambaji/Documents/Cursus/get_next_line/1char.txt", O_RDWR);
+	if (fd == -1) {
+		perror("Couldn't open the file. Try again.");
+		return (0);
+	}
+	result = get_next_line(fd);
+	printf("%d: %s", i, result);
+    while (result)
+    {
+		printf("%d: %s", i, result);
+	    result = get_next_line(fd);
+		if (i == 1)
+		free (result);
+	    i++;
+    } 
+	return (0);
+}
